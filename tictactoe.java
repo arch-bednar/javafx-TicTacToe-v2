@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
@@ -16,11 +17,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.Group;
 import javafx.geometry.Pos;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import java.io.*;
 
 public class tictactoe extends Application{
 
-    //    private Cell[][] fields = new Cell[3][3];
+    private Cell[][] fields = new Cell[3][3];
     
     /*    public tictactoe(){
 	for(int row=0; row<fields.length; row++){
@@ -51,7 +54,13 @@ public class tictactoe extends Application{
 	private char field = ' ';
 
 	public Cell(){
-	    //	    this.setStyle("-fx-border-color: black;");
+	    this.setStyle("-fx-border-color: black;");
+	    this.getChildren().add(new Text(" "));
+	    this.setOnMousePressed(new EventHandler<MouseEvent>(){
+		    public void handle(MouseEvent event){
+			System.out.println(((Text)getChildren().get(0)).getText());
+		    }
+		});
 	}
 
 	public void setField(char sign){
@@ -122,7 +131,56 @@ public class tictactoe extends Application{
     }
     
     public void gameStart(Stage game){
+
+	GridPane mesh = new GridPane();
+	makeMesh(mesh);
+	mesh.setPrefSize(300, 300);
+	mesh.setAlignment(Pos.CENTER);
+
+	Button exit = new Button();
+	exit.setText("Exit to home screen");
+	exit.setCancelButton(true);
+	exit.setPrefHeight(30);
+	exit.setPrefWidth(180);
+	exit.setFont(new Font(15));
 	
+	exit.setOnAction(new EventHandler<ActionEvent>(){
+		public void handle(ActionEvent event) { game.close(); }
+	    });
+	//	exit.setAlignment(Pos.CENTER);
+	
+	VBox plane = new VBox(10);
+	plane.getChildren().addAll(mesh, exit);
+	plane.setAlignment(Pos.CENTER);
+	plane.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
+	    
+	Scene gameBoard = new Scene(plane, 300, 390);
+	game.setScene(gameBoard);
+	game.setTitle("tictactoe");
+	game.show();
+    }
+
+    public void makeMesh(GridPane pane){
+	for(int col = 0; col<fields.length; col++){
+	    pane.getColumnConstraints().add(new ColumnConstraints(85));
+	}
+
+	for(int row=0; row<fields.length; row++){
+	    pane.getRowConstraints().add(new RowConstraints(85));
+	}
+	for(int row=0; row<fields.length; row++){
+	    for(int col=0; col<fields.length; col++){
+		Cell cell = new Cell();
+
+		Text position = new Text(String.valueOf(row) + ":" + String.valueOf(col));
+		position.setVisible(false);
+		
+		cell.getChildren().set(0, position);
+		cell.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+		fields[row][col] = cell;
+		pane.add(fields[row][col], row, col);
+	    }
+	}
     }
 
 }
