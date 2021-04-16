@@ -19,6 +19,7 @@ import javafx.scene.Group;
 import javafx.geometry.Pos;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import java.io.*;
 
@@ -50,7 +51,7 @@ public class tictactoe extends Application{
     }
 
 
-    public class Cell extends Pane{
+    private class Cell extends Pane{
 
 	private char field = ' ';
 
@@ -61,14 +62,27 @@ public class tictactoe extends Application{
 		    public void handle(MouseEvent event){
 			System.out.println(((Text)getChildren().get(0)).getText());
 			if(turn == 1 && field == ' '){
-			    getChildren().add(makeCircle());
+
+			    Ellipse smallerCircle = makeCircle(42, 42, 30, 30);
+			    smallerCircle.setFill(Color.WHITE);
+			    getChildren().addAll(makeCircle(42, 42, 35, 35), smallerCircle);
+			    
 			    field = 'O';
 			    turn = 2;
+			    if(vonNeumann(field) || diagonal(field)){
+				turn = 3;
+				System.out.println("O won!");
+			    }
+			    
 			}
-			else if (field == ' '){
+			else if (turn == 2 && field == ' '){
 			    getChildren().addAll(makeLine(10, 10, 75, 75), makeLine(75, 10, 10, 75));
 			    field = 'X';
 			    turn = 1;
+			    if(vonNeumann(field) || diagonal(field)){
+				turn = 3;
+				System.out.println("X won!");
+			    }
 			}
 		    }
 		});
@@ -173,11 +187,6 @@ public class tictactoe extends Application{
 	game.setScene(gameBoard);
 	game.setTitle("tictactoe");
 	game.show();
-	//engine();
-    }
-
-    private void engine(){
-
     }
 
     private void makeMesh(GridPane pane){
@@ -220,26 +229,29 @@ public class tictactoe extends Application{
     }
 
 
-    private Ellipse makeCircle(){
-	Ellipse circle = new Ellipse(42, 42, 30, 30);
+    private Ellipse makeCircle(int xa, int ya, int xb, int yb){
+	Ellipse circle = new Ellipse(xa, ya, xb, yb);
+	//circle.setStroke(Color.RED);
+	//circle.setFill(Color.RED);
 	return circle;
     }
 
     private Line makeLine(int xa, int ya, int xb, int yb){
 	Line line = new Line(xa, ya, xb, yb);
+	line.setStrokeWidth(5);
 	return line;
     }
 
-    private boolean vonNeumann(){
+    private boolean vonNeumann(char sign){
 	for (int col=0; col<fields.length; col++){
 	    for (int row=0; row<fields.length; row++){
 		int count=0;
 
 		for (int tcol=col-1; tcol<=col+1; tcol++){
-		    if(tcol<0 || tcol>fields.length || tcol==col)
+		    if(tcol<0 || tcol>fields.length-1 || tcol==col)
 			continue;
 		    if(fields[col][row].getSign() == fields[tcol][row].getSign())
-			if(fields[col][row].getSign() == 'X' || fields[col][row].getSign() == 'O')
+			if(fields[col][row].getSign() == sign)
 			    count++;
 		}
 		if(count == 2)
@@ -247,10 +259,10 @@ public class tictactoe extends Application{
 		
 		count=0;
 		for (int trow=row-1; trow<=row+1; trow++){
-		    if (trow < 0 || trow > fields.length || trow == row)
+		    if (trow < 0 || trow > fields.length-1 || trow == row)
 			continue;
 		    if (fields[col][row].getSign() == fields[col][trow].getSign())
-			if(fields[col][row].getSign() == 'X' || fields[col][row].getSign() == 'O')
+			if(fields[col][row].getSign() == sign)
 			    count++;
 		}
 
@@ -261,12 +273,15 @@ public class tictactoe extends Application{
 	return false;
     }
 
-    private boolean diagonal(){
-	if (fields[1][1].getSign() == fields[0][0].getSign() && fields[0][0].getSign() == fields[2][2].getSign()){
-	    if (fields[1][1].getSign() == fields[0][2].getSign() && fields[0][2].getSign() == fields[2][0].getSign())
-		if (fields[1][1].getSign() == 'X' || fields[1][1].getSign() == 'O')
-		    return true;
-	}
+    private boolean diagonal(char sign){
+	if (fields[1][1].getSign() == fields[0][0].getSign() && fields[0][0].getSign() == fields[2][2].getSign())
+	    if(fields[1][1].getSign() == sign)
+		return true;
+	
+	if (fields[1][1].getSign() == fields[0][2].getSign() && fields[0][2].getSign() == fields[2][0].getSign())
+	    if (fields[1][1].getSign() == sign)
+		return true;
+
 	return false;	    
     }
 }
