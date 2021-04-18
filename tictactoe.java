@@ -22,11 +22,13 @@ import javafx.scene.text.Text;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import java.io.*;
+import java.util.Random;
 
 public class tictactoe extends Application{
 
     private Cell[][] fields = new Cell[3][3];
     private int turn = 1;
+    private boolean pvc;
     /*    public tictactoe(){
 	for(int row=0; row<fields.length; row++){
 	    for(int col=0; col<fields.length; row++){
@@ -58,36 +60,87 @@ public class tictactoe extends Application{
 	public Cell(){
 	    this.setStyle("-fx-border-color: black;");
 	    this.getChildren().add(new Text(" "));
-	    this.setOnMousePressed(new EventHandler<MouseEvent>(){
-		    public void handle(MouseEvent event){
-			System.out.println(((Text)getChildren().get(0)).getText());
-			if(turn == 1 && field == ' '){
+	    if(!pvc){
+		this.setOnMousePressed(new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event){
+			    System.out.println(((Text)getChildren().get(0)).getText());
+			    
+			    if(turn == 1 && field == ' '){
+				
+				Ellipse smallerCircle = makeCircle(42, 42, 30, 30);
+				smallerCircle.setFill(Color.WHITE);
+				getChildren().addAll(makeCircle(42, 42, 35, 35), smallerCircle);
+				
+				field = 'O';
+				turn = 2;
+				if(vonNeumann(field) || diagonal(field)){
+				    turn = 3;
+				    System.out.println("O won!");
+				}
+				
+			    }
+			    else if (turn == 2 && field == ' '){
+				getChildren().addAll(makeLine(10, 10, 75, 75), makeLine(75, 10, 10, 75));
+				field = 'X';
+				turn = 1;
+				if(vonNeumann(field) || diagonal(field)){
+				    turn = 3;
+				    System.out.println("X won!");
+				}
+			    }
+			    if(isArrayFilled()){
+				System.out.println("End");
+				turn = 3;
+			    }
+			}
+		    });
+	    }else{
+		this.setOnMousePressed(new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event){
+			    System.out.println(((Text)getChildren().get(0)).getText());
 
-			    Ellipse smallerCircle = makeCircle(42, 42, 30, 30);
-			    smallerCircle.setFill(Color.WHITE);
-			    getChildren().addAll(makeCircle(42, 42, 35, 35), smallerCircle);
-			    
-			    field = 'O';
-			    turn = 2;
-			    if(vonNeumann(field) || diagonal(field)){
-				turn = 3;
-				System.out.println("O won!");
+			    if(turn != 3){
+
+				field = 'X';
+				getChildren().addAll(makeLine(10, 10, 75, 75), makeLine(75, 10, 10, 75));
+				if(vonNeumann(field) || diagonal(field)){
+				    turn = 3;
+				    System.out.println("X won!");
+				    return;
+				}
+				else if(isArrayFilled()){
+				    turn = 3;
+				    return;
+				}
+				
+				int x,y;
+				Random gen = new Random();
+				
+				do{
+				    x = gen.nextInt(3);
+				    y = gen.nextInt(3);
+				}while(fields[x][y].getSign() != ' ');
+				
+				fields[x][y].setField('O');
+				fields[x][y].getChildren().add(makeCircle(42, 42, 35, 35));
+				Ellipse smallerCircle = makeCircle(42, 42, 30, 30);
+				smallerCircle.setFill(Color.WHITE);
+				fields[x][y].getChildren().add(smallerCircle);
+
+				if (vonNeumann('O') || diagonal('O')){
+				    turn = 3;
+				    System.out.println("O won!");
+				}
+				else if(isArrayFilled()){
+				    turn = 3;
+				    return;
+				}
 			    }
-			    
 			}
-			else if (turn == 2 && field == ' '){
-			    getChildren().addAll(makeLine(10, 10, 75, 75), makeLine(75, 10, 10, 75));
-			    field = 'X';
-			    turn = 1;
-			    if(vonNeumann(field) || diagonal(field)){
-				turn = 3;
-				System.out.println("X won!");
-			    }
-			}
-		    }
-		});
+		    });
+	    }
 	}
-
+	
 	public void setField(char sign){
 	    if(this.field==' '){
 		this.field=sign;
@@ -109,6 +162,7 @@ public class tictactoe extends Application{
     
     public void gameMenu(Stage menu) throws IOException, FileNotFoundException{
 	Button start = new Button();
+	Button startPVC = new Button();
 	Button quit = new Button();
 
 	InputStream inp = new FileInputStream("img/ttt.png");
@@ -120,11 +174,15 @@ public class tictactoe extends Application{
 	myImage.setFitWidth(150);
 	
 	start.setText("Start game");
+	startPVC.setText("Start with computer");
 	quit.setText("Quit");
 	quit.setCancelButton(true);
 
 	start.setMinHeight(25);
 	start.setMinWidth(50);
+
+	startPVC.setMinHeight(25);
+	startPVC.setMinWidth(50);
 
 	quit.setMinHeight(25);
 	quit.setMinWidth(50);
@@ -138,6 +196,16 @@ public class tictactoe extends Application{
 		}
 	    });
 
+	startPVC.setOnAction(new EventHandler<ActionEvent>(){
+		@Override
+		public void handle(ActionEvent event){
+		    System.out.println("comp");
+		    menu.close();
+		    pvc = true;
+		    gameStart(menu);
+		}
+	    });
+
 	quit.setOnAction(new EventHandler<ActionEvent>(){
 		@Override
 		public void handle(ActionEvent event){
@@ -146,14 +214,14 @@ public class tictactoe extends Application{
 	    });
 
 	VBox menuScreen = new VBox(10);
-	menuScreen.setPrefSize(250, 250);
-	menuScreen.getChildren().addAll(myImage, start, quit);
+	menuScreen.setPrefSize(250, 275);
+	menuScreen.getChildren().addAll(myImage, start, startPVC, quit);
 	menuScreen.setAlignment(Pos.CENTER);
 	menuScreen.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, null, null)));
 	//Group menuGroup = new Group();
 	//menuGroup.getChildren().add(menuScreen);
 
-	Scene menuScene = new Scene(menuScreen, 250, 250);
+	Scene menuScene = new Scene(menuScreen, 250, 275);
 	menu.setTitle("Main menu");
 	menu.setScene(menuScene);
 	menu.show();
@@ -283,5 +351,16 @@ public class tictactoe extends Application{
 		return true;
 
 	return false;	    
+    }
+
+    private boolean isArrayFilled(){
+	for (int col=0; col<fields.length; col++){
+	    for (int row=0; row<fields.length; row++){
+		if (fields[col][row].getSign() == ' ')
+		    return false;
+	    }
+	}
+	System.out.println("Draw!");
+	return true;
     }
 }
