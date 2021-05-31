@@ -43,6 +43,10 @@ public class tictactoe extends Application{
     
     @Override
     public void start(Stage primaryStage){
+	/*
+	  start method
+	  catches exceptions
+	*/
 	try{
 	    gameMenu(primaryStage);
 	}catch(FileNotFoundException e){
@@ -55,39 +59,77 @@ public class tictactoe extends Application{
 
     private class Cell extends Pane{
 
-	private char field = ' ';
+	/*
+	  Private inner class Cell
+	  inherits after Pane
+	*/
+
+	private char field = ' ';  //takes X or O, shows how field is filled 
 
 	public Cell(){
-	    this.setStyle("-fx-border-color: black;");
-	    this.getChildren().add(new Text(" "));
+	    this.setStyle("-fx-border-color: black;"); //css border style
+	    this.getChildren().add(new Text(" ")); //description of current field
 	    if(!pvc){
+
+		//PVP mode
+
 		this.setOnMousePressed(new EventHandler<MouseEvent>(){
+
+			/*
+			  catches event is mouse pressed on Cell (Pane)
+			  changes player turn
+			  checks who won and if draw
+			 */
+			
 			public void handle(MouseEvent event){
 			    System.out.println(((Text)getChildren().get(0)).getText());
-			    
+
+			    //Checks player's turn (first player) and if field is empty
 			    if(turn == 1 && field == ' '){
+
+				/*
+				  draws empty circle
+				  (black greater and white smaller)
+				*/
 				
 				Ellipse smallerCircle = makeCircle(42, 42, 30, 30);
 				smallerCircle.setFill(Color.WHITE);
 				getChildren().addAll(makeCircle(42, 42, 35, 35), smallerCircle);
 				
-				field = 'O';
-				turn = 2;
+				field = 'O'; //sets field as circle O
+				turn = 2; //changes player turn
+
+
+				//Checks if player O won by diagonal or horizontal or vertical
 				if(vonNeumann(field) || diagonal(field)){
 				    turn = 3;
 				    System.out.println("O won!");
 				}
 				
 			    }
+			    //Checks player's turn (second player) and if field is empty
 			    else if (turn == 2 && field == ' '){
-				getChildren().addAll(makeLine(10, 10, 75, 75), makeLine(75, 10, 10, 75));
-				field = 'X';
-				turn = 1;
+
+				/*
+				  draws cross for second player
+				  checks winner
+				*/
+				
+				getChildren().addAll(makeLine(10, 10, 75, 75), makeLine(75, 10, 10, 75)); //draws cross by drawning two crossed lines
+				field = 'X'; //sets field as X
+				turn = 1; //changes player turn
+
+
+				//Checks if player O won by diagonal or horizontal or vertical
 				if(vonNeumann(field) || diagonal(field)){
 				    turn = 3;
 				    System.out.println("X won!");
 				}
 			    }
+
+
+			    //This conditional checks if array is filled
+			    //if true then ends game and draw
 			    if(isArrayFilled()){
 				System.out.println("End");
 				turn = 3;
@@ -95,44 +137,64 @@ public class tictactoe extends Application{
 			}
 		    });
 	    }else{
+
+		//PVC mode
+		
 		this.setOnMousePressed(new EventHandler<MouseEvent>(){
+
+			//Checks if player pressed this cell
 			public void handle(MouseEvent event){
 			    System.out.println(((Text)getChildren().get(0)).getText());
 
+			    //if not draw
 			    if(turn != 3){
+				
+				field = 'X'; //sets field as player field X
+				getChildren().addAll(makeLine(10, 10, 75, 75), makeLine(75, 10, 10, 75)); //draws cross
 
-				field = 'X';
-				getChildren().addAll(makeLine(10, 10, 75, 75), makeLine(75, 10, 10, 75));
+
+				//checking winner
 				if(vonNeumann(field) || diagonal(field)){
 				    turn = 3;
 				    System.out.println("X won!");
 				    return;
 				}
+				//checking if is draw
 				else if(isArrayFilled()){
 				    turn = 3;
 				    return;
 				}
+
+
+				
+				//primitive engine for AI
+				//generating position for computer's circle
 				
 				int x,y;
-				Random gen = new Random();
-				
+				Random gen = new Random(); 
+
+				//first generates new position
 				do{
 				    x = gen.nextInt(3);
 				    y = gen.nextInt(3);
-				}while(fields[x][y].getSign() != ' ');
-				
-				fields[x][y].setField('O');
-				fields[x][y].getChildren().add(makeCircle(42, 42, 35, 35));
-				Ellipse smallerCircle = makeCircle(42, 42, 30, 30);
-				smallerCircle.setFill(Color.WHITE);
-				fields[x][y].getChildren().add(smallerCircle);
+				}while(fields[x][y].getSign() != ' '); // do it while field's position is clear
+			      
+				//sets field as circle
+				fields[x][y].setField('O'); //computer's circle field
+				fields[x][y].getChildren().add(makeCircle(42, 42, 35, 35)); //drawing circle and adding it to the cell
+				Ellipse smallerCircle = makeCircle(42, 42, 30, 30); //drawing circle
+				smallerCircle.setFill(Color.WHITE); //setting fill of smaller circle
+				fields[x][y].getChildren().add(smallerCircle); //adding circle to Cell
 
+
+				//checks if computer won
 				if (vonNeumann('O') || diagonal('O')){
-				    turn = 3;
+				    turn = 3; //end game
 				    System.out.println("O won!");
 				}
+				//checks if draw
 				else if(isArrayFilled()){
-				    turn = 3;
+				    turn = 3; //end game
 				    return;
 				}
 			    }
@@ -142,12 +204,14 @@ public class tictactoe extends Application{
 	}
 	
 	public void setField(char sign){
+	    //sets field as a sign (X, O)
 	    if(this.field==' '){
 		this.field=sign;
 	    }
 	}
 
 	public char getSign(){
+	    //gets sign of the field
 	    return field;
 	}
 	
@@ -155,12 +219,19 @@ public class tictactoe extends Application{
 
 
     public static void main(String[] args){
+	//main  method
 	launch(args);
 
     }
 
-    
+
     public void gameMenu(Stage menu) throws IOException, FileNotFoundException{
+
+	/*
+	  Creates main menu stage
+	  throws IOException and FileNotFoundException for not found image or another IO exception
+	*/
+	
 	Button start = new Button();
 	Button startPVC = new Button();
 	Button quit = new Button();
@@ -217,7 +288,7 @@ public class tictactoe extends Application{
 	menuScreen.setPrefSize(250, 275);
 	menuScreen.getChildren().addAll(myImage, start, startPVC, quit);
 	menuScreen.setAlignment(Pos.CENTER);
-	menuScreen.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, null, null)));
+	menuScreen.setBackground(new Background(new BackgroundFill(Color.PINK, null, null)));
 	//Group menuGroup = new Group();
 	//menuGroup.getChildren().add(menuScreen);
 
@@ -229,6 +300,12 @@ public class tictactoe extends Application{
     
     private void gameStart(Stage game){
 
+	/*
+	  Creates game stage
+	  calls mathod  to create field 
+	  as a mesh of cells (private class)
+	*/
+	
 	GridPane mesh = new GridPane();
 	makeMesh(mesh);
 	mesh.setPrefSize(300, 300);
@@ -258,6 +335,14 @@ public class tictactoe extends Application{
     }
 
     private void makeMesh(GridPane pane){
+
+	/*
+	  Makes a mesh of cells
+	  for our gridpane
+	  it uses RowConstraint and ColumnConstraints to create table
+	  and fills it
+	 */
+	
 	for(int col = 0; col<fields.length; col++){
 	    pane.getColumnConstraints().add(new ColumnConstraints(85));
 	}
@@ -298,6 +383,7 @@ public class tictactoe extends Application{
 
 
     private Ellipse makeCircle(int xa, int ya, int xb, int yb){
+	//creates circle
 	Ellipse circle = new Ellipse(xa, ya, xb, yb);
 	//circle.setStroke(Color.RED);
 	//circle.setFill(Color.RED);
@@ -305,12 +391,16 @@ public class tictactoe extends Application{
     }
 
     private Line makeLine(int xa, int ya, int xb, int yb){
+	//creates line
 	Line line = new Line(xa, ya, xb, yb);
 	line.setStrokeWidth(5);
 	return line;
     }
 
     private boolean vonNeumann(char sign){
+	
+	//checks winner horizontal and vertical
+
 	for (int col=0; col<fields.length; col++){
 	    for (int row=0; row<fields.length; row++){
 		int count=0;
@@ -342,6 +432,9 @@ public class tictactoe extends Application{
     }
 
     private boolean diagonal(char sign){
+
+	//checks winner diagonal
+	
 	if (fields[1][1].getSign() == fields[0][0].getSign() && fields[0][0].getSign() == fields[2][2].getSign())
 	    if(fields[1][1].getSign() == sign)
 		return true;
@@ -354,6 +447,9 @@ public class tictactoe extends Application{
     }
 
     private boolean isArrayFilled(){
+
+	//checks if array is filled (draw)
+	
 	for (int col=0; col<fields.length; col++){
 	    for (int row=0; row<fields.length; row++){
 		if (fields[col][row].getSign() == ' ')
